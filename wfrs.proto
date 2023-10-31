@@ -1,0 +1,145 @@
+syntax = "proto3";
+
+package wfrs;
+
+service Workflow {
+  rpc Load (LoadRequest) returns (OptLoadResponse);
+  rpc IsSync (IsSyncRequest) returns (IsSyncResponse);
+  rpc List (ListRequest) returns (ListResponse);
+  rpc Create (CreateRequest) returns (CreateResponse);
+  rpc Update (UpdateRequest) returns (UpdateResponse);
+  rpc Complete (CompleteRequest) returns (CompleteResponse);
+  rpc Listen (ListenRequest) returns (stream ListenResponse);
+}
+
+message ObjectId {
+  string id = 1;
+}
+
+message LoadRequest {
+  string ctx = 1;
+  string def = 2;
+  string ver = 3;
+}
+
+message OptLoadResponse {
+  LoadResponse workflow = 1;
+}
+
+message LoadResponse {
+  ObjectId key = 1;
+  bytes state = 2;
+  string ver = 3;
+  int64 ts = 4;
+}
+
+message IsSyncRequest {
+  ObjectId key = 1;
+  int64 ts = 2;
+}
+
+message IsSyncResponse {
+  bool sync = 1;
+}
+
+message ListRequest {
+  uint64 total = 1;
+  uint64 page = 2;
+  uint64 limit = 3;
+}
+
+message ListResponse {
+  uint64 total = 1;
+  uint64 page = 2;
+  uint64 limit = 3;
+  repeated WorkflowInfo list = 4;
+}
+
+message CreateRequest {
+  string ctx = 1;
+  string def = 2;
+  string ver = 3;
+  bytes state = 4;
+  TitleContext title = 5;
+  int32 ttl = 6;
+}
+
+message WorkflowInfo {
+  string ctx = 1;
+  string def = 2;
+  string ver = 3;
+  TitleContext title = 4;
+  ObjectId key = 5;
+  int64 ts = 6;
+}
+
+message CreateResponse {
+  ObjectId key = 1;
+  int64 ts = 2;
+}
+
+message UpdateRequest {
+  ObjectId key = 1;
+  TitleContext title = 2;
+  bytes state = 3;
+}
+
+message UpdateResponse {
+  bool success = 1;
+  int64 ts = 2;
+}
+
+message CompleteRequest {
+  ObjectId key = 1;
+  bool cancelled = 2;
+}
+
+message CompleteResponse {
+  bool success = 1;
+}
+
+message TitleContext {
+  string heading = 1;
+  string description = 2;
+  bytes context = 3;
+}
+
+message ListenRequest {
+  ObjectId key = 1;
+}
+
+message CreateEvent {
+  string ctx = 1;
+  string def = 2;
+  string ver = 3;
+  string sub = 4;
+  ObjectId key = 5;
+  bytes state = 6;
+  int64 ts = 7;
+}
+
+message UpdateEvent {
+  string sub = 1;
+  ObjectId key = 2;
+  bytes state = 3;
+  int64 ts = 4;
+}
+
+message CompleteEvent {
+  string ctx = 1;
+  string def = 2;
+  string ver = 3;
+  string sub = 4;
+  ObjectId key = 5;
+  bool cancelled = 6;
+}
+
+message ListenResponse {
+  int64 ts = 1;
+  string name = 2;
+  oneof event {
+    CreateEvent create_event = 3;
+    UpdateEvent update_event = 4;
+    CompleteEvent complete_event = 5;
+  }
+}
